@@ -1,6 +1,8 @@
 # Geoprocesamiento
 
-ESCRIBIR INTRO
+Cuando tenemos datos espaciales y queremos manipularlos para obtener nuevos datos que nos permitan complejizar nuestro análisis y tomar decisiones, necesitamos utilizar diferentes herramientas de geoprocesamiento.
+Los geoprocesos, que nos permiten analizar y administrar datos geográficos, pueden ser: unión, intersección, cálculo de distancias, cálculo de áreas de influencia (buffer), entre otros.
+En este capítulo utilizaremos las herramientas para geoprocesamiento de datos geográficos incluidas en el paquete `sf`. EN PROCESO!
 
 ## Cruces espaciales 
 
@@ -27,7 +29,6 @@ Uno contiene los alojamientos ofrecidos por Airbnb en Buenos Aires en Julio 2017
 airbnb <- read.csv("https://query.data.world/s/55amvafrknrgkeyeiu54yb2c6u6brc",
                    stringsAsFactors = FALSE)
 names(airbnb)
-
 ```
 
 Y el otro contiene los polígonos de las comunas porteñas:
@@ -113,20 +114,71 @@ ggplot() +
 
 ### Coropletas
 
-Explicar como usar los conteos de puntos por polígono para mapear en coropletas
+Ahora bien, hasta acá seguimos teniendo los mismos datos con geometría de punto pero con una nueva columna que indica a que Comuna pertenece cada observación.
+Cuando tenemos muchos puntos en un mapa se vuelve difícil realizar un análisis visual y sacar conclusiones de los mismos. Para solucionar esto, sirven los mapas coropléticos, que muestran áreas geográficas (polígonos) coloreadas según alguna variable del dataset. EN PROCESO!
 
 ## Uniones
 
-Dessarrollar
+Entonces, si por ejemplo queremos hacer un mapa coroplético dándole color a cada una de las Comunas según la cantidad de propiedades que se alquilan por Airbnb, ¿Cómo lo podemos hacer?.
+Veamos esto en detalle:
+Lo primero que debemos hacer es...
+
+```{r}
+ggplot() +
+  geom_sf(data = comunas %>%
+  left_join(airbnb_con_comunas %>%
+  filter(!is.na(comunas)) %>%
+  group_by(comunas) %>%
+  summarise(freq=n()) %>%
+  st_set_geometry(NULL),
+  by="comunas"), aes(fill=freq), color="gray80") +
+    labs(title = "Airbnb por Comuna",
+         subtitle = "Propiedades publicadas",
+         fill = "Cantidad",
+         caption= "Fuente: Airbnb 2017") +
+  scale_fill_gradient(low="lightgoldenrodyellow", high="deeppink4") +
+  theme_light()
+```
+
+Tal como se ve en el mapa, la Comuna 14 donde se encuentra solo el barrio de Palermo es la que más cantidad de propiedades tiene publicadas en Airbnb. ¿Esto tiene sentido no? Ya que, Palermo es uno de los barrios donde más cantidad de atracciones turísticas hay. Le sigue la Comuna 1.
+EN PROCESO!
+
+```{r}
+ggplot() +
+  geom_sf(data = comunas %>%
+  left_join(airbnb_con_comunas %>%
+  filter(!is.na(comunas)) %>%
+  group_by(comunas) %>%
+  summarise(price=median(price)) %>%
+  st_set_geometry(NULL),
+  by="comunas"), aes(fill=price), color="gray80") +
+    labs(title = "Valor de Airbnb por Comuna",
+         subtitle = "Precio promedio por noche",
+         fill = "$/noche",
+         caption= "Fuente: Airbnb 2017") +
+  scale_fill_gradient(low="lightgoldenrodyellow", high="deeppink4") +
+  theme_light()
+```
 
 ## Intersecciones
 
-Desarrollar
+Desarrollar st_intersection
 
 ## Distancias
 
-Desarrollar
+Desarrollar st_distance
+
+```{r}
+airbnb <- st_distance(airbnb, caba_subte_shp)
+```
 
 ## Cálculo de extensión (longitud, área)
 
-Desarrollar
+Calculemos la longitud del perímetro y el área de la superficie.
+
+```{r}
+comunas$aarea <- st_area(comunas)
+
+comunas$longggg <- st_length(comunas)
+```
+
